@@ -3,9 +3,12 @@ package me.tabizzz.aureliumbonus;
 import com.archyx.aureliumskills.ability.Ability;
 import com.archyx.aureliumskills.api.AureliumAPI;
 import com.archyx.aureliumskills.api.event.XpGainEvent;
+import com.archyx.aureliumskills.configuration.OptionL;
 import com.archyx.aureliumskills.data.PlayerData;
+import com.archyx.aureliumskills.skills.Skill;
 import com.archyx.aureliumskills.skills.Skills;
 import me.tabizzz.klib.KAPI;
+import me.tabizzz.klib.acf.PaperCommandManager;
 import me.tabizzz.klib.evalex.EvaluationException;
 import me.tabizzz.klib.evalex.parser.ParseException;
 import org.bukkit.entity.Player;
@@ -14,18 +17,44 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 public final class AureliumBonus extends JavaPlugin implements Listener {
 
 	PluginConfig config;
+
+	PaperCommandManager commandManager;
 
 	@Override
 	public void onEnable() {
 		// Plugin startup logic
 		config = new PluginConfig(this);
 		config.reload();
-
 		KAPI.RegisterPlayerData(new BonusDataSource(this));
+		commandManager = new PaperCommandManager(this);
 
+		getServer().getPluginManager().registerEvents(this, this);
+
+		commandManager.enableUnstableAPI("help");
+
+		commandManager.getCommandCompletions().registerAsyncCompletion("skills", c -> {
+			List<String> values = new ArrayList<>();
+			for (Skill skill : AureliumAPI.getPlugin().getSkillRegistry().getSkills()) {
+				if (OptionL.isEnabled(skill)) {
+					values.add(skill.toString().toLowerCase(Locale.ROOT));
+				}
+			}
+			return values;
+		});
+
+		commandManager.registerCommand(new BonusCommands());
+
+		startBonusTask();
+	}
+
+	private void startBonusTask() {
 		new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -52,7 +81,6 @@ public final class AureliumBonus extends JavaPlugin implements Listener {
 				}
 			}
 		}.runTaskTimer(this, 20L * 60, config.bonusInterval * 20L * 60);
-
 	}
 
 	@EventHandler
@@ -62,7 +90,7 @@ public final class AureliumBonus extends JavaPlugin implements Listener {
 		var skill = event.getSkill();
 		if (skill instanceof Skills sk && bonus.containsKey(sk)) {
 			var bonusCount = bonus.get(sk);
-			if(bonusCount == 0) {
+			if (bonusCount == 0) {
 				return;
 			}
 			bonus.put(sk, bonusCount - 1);
@@ -71,7 +99,8 @@ public final class AureliumBonus extends JavaPlugin implements Listener {
 				var level = config.usePlayerLevel ? AureliumAPI.getTotalLevel(player) / 15 : AureliumAPI.getSkillLevel(player, skill);
 				var bonusXp = config.xpPerBonus.with("level", level).evaluate().getNumberValue().doubleValue();
 				var multiplier = AureliumAPI.getPlugin().getLeveler().getMultiplier(player, skill);
-				event.setAmount(xp + getAbilityXp(player, bonusXp * multiplier, getAbility(sk)));
+				var abilityXp = getAbilityXp(player, bonusXp, getAbility(sk));
+				event.setAmount(xp + abilityXp * multiplier);
 			} catch (EvaluationException | ParseException e) {
 				throw new RuntimeException(e);
 			}
