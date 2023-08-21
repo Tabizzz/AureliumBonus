@@ -1,0 +1,8 @@
+name: AureliumBonus
+version: '${project.version}'
+main: me.tabizzz.aureliumbonus.AureliumBonus
+api-version: '1.20'
+authors: [Tabizzz]
+depend:
+  - Klib
+  - AureliumSkills
