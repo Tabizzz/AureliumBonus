@@ -1,0 +1,9 @@
+# How many xp is given per bonus.
+xpPerBonus: 35 * level
+# How many bonus the player can accumulate.
+maxBonus: min(48, level)
+# The time in minutes between each bonus.
+bonusInterval: 30
+# If set to true the level var is set to the player level in all skills.
+# If set to false the level var is set to the level in the skill the player is training.
+usePlayerLevel: false
