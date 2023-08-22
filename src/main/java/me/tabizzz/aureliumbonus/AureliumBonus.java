@@ -11,6 +11,7 @@ import me.tabizzz.klib.KAPI;
 import me.tabizzz.klib.acf.PaperCommandManager;
 import me.tabizzz.klib.evalex.EvaluationException;
 import me.tabizzz.klib.evalex.parser.ParseException;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -50,6 +51,11 @@ public final class AureliumBonus extends JavaPlugin implements Listener {
 		});
 
 		commandManager.registerCommand(new BonusCommands());
+
+		if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+			new PlaceholderSupport(this).register();
+			getLogger().info("PlaceholderAPI Support Enabled!");
+		}
 
 		startBonusTask();
 	}

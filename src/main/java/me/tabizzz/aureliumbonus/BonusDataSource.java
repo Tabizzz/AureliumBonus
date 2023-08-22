@@ -28,8 +28,7 @@ public class BonusDataSource implements PlayerDataSource {
 	@Override
 	public void save(ConfigurationSection configurationSection) {
 		for (var skill : Skills.values()) {
-			int value = bonus.get(skill);
-			configurationSection.set(skill.toString(), value);
+			configurationSection.set(skill.toString(), bonus.get(skill));
 		}
 	}
 

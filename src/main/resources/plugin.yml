@@ -6,3 +6,4 @@ authors: [Tabizzz]
 depend:
   - Klib
   - AureliumSkills
+  - PlaceholderAPI
